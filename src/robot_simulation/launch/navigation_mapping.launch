@@ -1,0 +1,14 @@
+<launch>
+
+    <!-- 加载场景 -->
+    <include file="$(find robot_simulation)/launch/simulation_stage.launch" />
+
+    <include file="$(find robot_simulation)/launch/gmapping.launch" />
+
+    <include file="$(find robot_simulation)/launch/move_base.launch" />
+
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find robot_simulation)/rviz/simulation.rviz"
+        required="true" />
+
+
+</launch>
