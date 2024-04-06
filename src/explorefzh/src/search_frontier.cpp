@@ -18,17 +18,17 @@ namespace frontier_exploration_ns
     using costmap_2d::LETHAL_OBSTACLE; // 占据栅格类型
     using costmap_2d::NO_INFORMATION;  // 未知栅格类型
 
-    FrontierSearchClass::FrontierSearchClass(costmap_2d::Costmap2D *costmap, double potential_scale, double gain_scale, double min_frontier_size) : costmap_(costmap), gain_scale_(gain_scale), potential_scale_(potential_scale), min_frontier_size_(min_frontier_size) {} // 构造函数
+    FrontierSearchClass::FrontierSearchClass(costmap_2d::Costmap2D *costmap, double potential_scale, double gain_scale, double orientation_scale, double min_frontier_size) : costmap_(costmap), gain_scale_(gain_scale), potential_scale_(potential_scale), orientation_scale_(orientation_scale), min_frontier_size_(min_frontier_size) {} // 构造函数
 
     /**
      * @brief 从当前位置（世界坐标系）开始搜寻前沿集合  返回找到满足最小阈值的前沿容器
      */
-    std::vector<FrontierStruct> FrontierSearchClass::SearchFrom(geometry_msgs::Point position)
+    std::vector<FrontierStruct> FrontierSearchClass::SearchFrom(geometry_msgs::Pose pose)
     {
         std::vector<FrontierStruct> frontiers_vec; // 边界点集 的容器
 
         unsigned int mx, my;
-        if (!costmap_->worldToMap(position.x, position.y, mx, my)) // 切换世界坐标系到栅格坐标系
+        if (!costmap_->worldToMap(pose.position.x, pose.position.y, mx, my)) // 切换世界坐标系到栅格坐标系
         {
             ROS_ERROR("----Robot out of costmap bounds,cannot search for frontiers----");
             return frontiers_vec; // 返回空列表
@@ -88,7 +88,7 @@ namespace frontier_exploration_ns
 
         // for (auto &iter_frontier : frontiers_vec)
         //     iter_frontier.cost = CalculateFrontierCost(iter_frontier);
-        CalculateFrontierCost(frontiers_vec);
+        CalculateFrontierCost(frontiers_vec, pose);
 
         std::sort(frontiers_vec.begin(), frontiers_vec.end(), [](const FrontierStruct &f1, const FrontierStruct &f2)
                   { return f1.cost < f2.cost; }); // 对候选前沿点集合进行排序 Lambda表达式
@@ -188,26 +188,41 @@ namespace frontier_exploration_ns
      * @brief 计算代价 归一化形式 考虑转角航向代价
      * @param  frontiers_vec    My Param doc
      */
-    void FrontierSearchClass::CalculateFrontierCost(std::vector<FrontierStruct> &frontiers_vec)
+    void FrontierSearchClass::CalculateFrontierCost(std::vector<FrontierStruct> &frontiers_vec, geometry_msgs::Pose pose)
     {
         double max_min_distance = 1e-4;
         double max_size = 1e-4;
-        double max_delte_angle = 1e-4;
+        double max_delta_angle = 1e-6;
+        double yaw = tf::getYaw(pose.orientation); // 获取当前机器人的朝向角度  欧拉角
 
-        for (const auto &iter_frontier : frontiers_vec)
+        for (auto &iter_frontier : frontiers_vec)
         {
+
+            double angle_to_goal = atan2(iter_frontier.centroid.y - pose.position.y, iter_frontier.centroid.x - pose.position.x);
+
+            double delta_angle = angle_to_goal - yaw;
+            while (delta_angle > M_PI)
+                delta_angle -= 2 * M_PI;
+            while (delta_angle < -M_PI)
+                delta_angle += 2 * M_PI;
+
+            iter_frontier.delta_angle = fabs(delta_angle) * R_TO_A; // 取绝对值
+
             if (iter_frontier.min_distance > max_min_distance)
                 max_min_distance = iter_frontier.min_distance;
 
             if (iter_frontier.size > max_size)
                 max_size = iter_frontier.size;
-            // if (iter_frontier.delta_angle > max_delte_angle)
-            //     max_delte_angle = iter_frontier.delta_angle;
+
+            if (iter_frontier.delta_angle > max_delta_angle)
+                max_delta_angle = iter_frontier.delta_angle;
         }
 
         for (auto &iter_frontier : frontiers_vec)
         {
-            iter_frontier.cost = potential_scale_ * (iter_frontier.min_distance / max_min_distance) - gain_scale_ * (iter_frontier.size / max_size);
+            // iter_frontier.cost = potential_scale_ * (iter_frontier.min_distance / max_min_distance) - gain_scale_ * (iter_frontier.size / max_size);
+
+            iter_frontier.cost = potential_scale_ * (iter_frontier.min_distance / max_min_distance) + orientation_scale_ * (iter_frontier.delta_angle / max_delta_angle) - gain_scale_ * (iter_frontier.size / max_size);
         }
     }
 } // end of namespace

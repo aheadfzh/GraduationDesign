@@ -41,6 +41,7 @@ namespace explore_ns
         search_ = frontier_exploration_ns::FrontierSearchClass(costmap_client_.getCostmap(),
                                                                potential_scale_,
                                                                gain_scale_,
+                                                               orientation_scale_,
                                                                min_frontier_size);
         if (visualize_)
             marker_array_pub_ = private_nh_.advertise<visualization_msgs::MarkerArray>("frontiers", 10);
@@ -156,7 +157,7 @@ namespace explore_ns
     void ExploreClass::MakePlan()
     {
         auto pose = costmap_client_.getRobotPose();
-        auto frontiers_vec = search_.SearchFrom(pose.position); // 从当前robot所在位置开始寻找
+        auto frontiers_vec = search_.SearchFrom(pose); // 从当前robot所在位置开始寻找
         ROS_DEBUG("----had found %lu frontiers---- ", frontiers_vec.size());
 
         for (size_t i = 0; i < frontiers_vec.size(); ++i) // 显示边界的代价
@@ -180,6 +181,7 @@ namespace explore_ns
             return;
         }
         geometry_msgs::Point target_position = iter_frontier->centroid;
+        double target_delta_angle = iter_frontier->delta_angle;
 
         bool same_goal = prev_goal_ == target_position; // 判断是否相同
         prev_goal_ = target_position;
@@ -197,6 +199,8 @@ namespace explore_ns
         }
         if (same_goal)
             return;
+
+        ROS_WARN("!!!! current goal point delta angle is %f !!!!", target_delta_angle);
 
         // 给move_base 发送目标点
         move_base_msgs::MoveBaseGoal goal;

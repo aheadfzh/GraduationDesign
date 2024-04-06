@@ -13,6 +13,12 @@
 #include <mutex>
 #include <costmap_2d/cost_values.h>
 #include <geometry_msgs/Point.h>
+#include <geometry_msgs/PoseStamped.h>
+
+#include <cmath>
+#include <tf/transform_datatypes.h>
+
+constexpr double R_TO_A = 180 / M_PI; // 弧度转角度比例 在编译阶段就完成了运算
 
 namespace frontier_exploration_ns
 {
@@ -41,12 +47,12 @@ namespace frontier_exploration_ns
         /**
          * @brief Construct a new Frontier Search Class object
          */
-        FrontierSearchClass(costmap_2d::Costmap2D *costmap, double potential_scale, double gain_scale, double min_frontier_size);
+        FrontierSearchClass(costmap_2d::Costmap2D *costmap, double potential_scale, double gain_scale, double orientation_scale, double min_frontier_size);
 
         /**
          * @brief 从这个位置开始搜寻边界点
          */
-        std::vector<FrontierStruct> SearchFrom(geometry_msgs::Point position);
+        std::vector<FrontierStruct> SearchFrom(geometry_msgs::Pose pose);
 
     protected:
         /**
@@ -61,12 +67,12 @@ namespace frontier_exploration_ns
         bool IsNewFrontierCell(unsigned int index, const std::vector<bool> &frontier_flag);
 
         double CalculateFrontierCost(const FrontierStruct &frontier);
-        void CalculateFrontierCost(std::vector<FrontierStruct> &frontiers_vec);
+        void CalculateFrontierCost(std::vector<FrontierStruct> &frontiers_vec, geometry_msgs::Pose);
 
     private:
         costmap_2d::Costmap2D *costmap_;
         unsigned char *map_;
-        double gain_scale_, potential_scale_;
+        double gain_scale_, potential_scale_, orientation_scale_;
         unsigned int size_x_, size_y_;
         double min_frontier_size_;
     };
