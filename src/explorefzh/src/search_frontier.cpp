@@ -180,7 +180,7 @@ namespace frontier_exploration_ns
      */
     double FrontierSearchClass::CalculateFrontierCost(const FrontierStruct &frontier)
     {
-        // TODO：应该归一化处理
+        
         return (potential_scale_ * frontier.min_distance * costmap_->getResolution()) - (gain_scale_ * frontier.size * costmap_->getResolution());
     }
 
