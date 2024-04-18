@@ -5,6 +5,8 @@
 
     <include file="$(find robot_simulation)/launch/gmapping.launch" />
 
+    <!-- <include file="$(find robot_simulation)/launch/cartographer.launch" /> -->
+
     <include file="$(find robot_simulation)/launch/move_base.launch" />
 
     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find robot_simulation)/rviz/simulation.rviz"

@@ -1,9 +1,9 @@
 #pragma once
 
-#include<memory>
-#include<vector>
-#include<mutex>
-#include<string>
+#include <memory>
+#include <vector>
+#include <mutex>
+#include <string>
 
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
@@ -13,6 +13,7 @@
 
 #include "costmap_client.h"
 #include "search_frontier.hpp"
+#include "dbscan.h"
 
 namespace explore_ns
 {
@@ -54,6 +55,8 @@ namespace explore_ns
         double potential_scale_, orientation_scale_, gain_scale_;
         ros::Duration progress_timeout_; // 程序超时时间
         bool visualize_;
+
+        dbscan_ns::DbscanClass dbscan;
     };
 
 } // end of explore_ns

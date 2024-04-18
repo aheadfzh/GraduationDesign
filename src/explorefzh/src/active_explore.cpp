@@ -25,7 +25,8 @@ namespace explore_ns
                                    costmap_client_(private_nh_, relative_nh_, &tf_listener_),
                                    move_base_client_("move_base"),
                                    prev_distance_(0.0),
-                                   last_markers_count_(0)
+                                   last_markers_count_(0),
+                                   dbscan(private_nh_) // dbscan算法
     {
         double timeout;
         double min_frontier_size;
@@ -81,6 +82,12 @@ namespace explore_ns
         green.b = 0.0;
         green.a = 1.0;
 
+        std_msgs::ColorRGBA yellow;
+        green.r = 1.0;
+        green.g = 1.0;
+        green.b = 0.0;
+        green.a = 1.0;
+
         ROS_DEBUG("----visualising %lu frontiers----", frontiers_vec.size());
         visualization_msgs::MarkerArray marker_array;
         std::vector<visualization_msgs::Marker> &markers_vec = marker_array.markers;
@@ -120,12 +127,14 @@ namespace explore_ns
             }
             else
                 marker.color = blue;
-
             markers_vec.push_back(marker);
             ++id;
-            marker.type = visualization_msgs::Marker::SPHERE;
+
+            // marker.type = visualization_msgs::Marker::SPHERE;
+            marker.type = visualization_msgs::Marker::CYLINDER; // 圆柱体
             marker.id = int(id);
-            marker.pose.position = frontier.initial;
+            // marker.pose.position = frontier.initial;
+            marker.pose.position = frontier.centroid;
             double scale = std::min(std::abs(min_cost * 0.4 / frontier.cost), 0.5);
             marker.scale.x = scale;
             marker.scale.y = scale;
@@ -135,9 +144,22 @@ namespace explore_ns
                 marker.color = green;
             else
                 marker.color = red;
-
             markers_vec.push_back(marker);
             ++id;
+
+            // /*--goal--*/
+
+            // marker.type = visualization_msgs::Marker::CYLINDER; // 圆柱体
+            // marker.id = int(id);
+            // marker.pose.position = frontier.centroid;
+            // // scale 保持不变
+            // marker.points = {};
+            // if (!temp_color_flag)
+            //     marker.color = yellow;
+            // else
+            //     marker.color = red;
+            // markers_vec.push_back(marker);
+            // ++id;
         }
         size_t current_markers_count = markers_vec.size();
         // 删除之前不再使用的标记
@@ -165,6 +187,7 @@ namespace explore_ns
 
         if (frontiers_vec.empty())
         {
+            ROS_WARN("!!!All frontiers have been explored !!!!");
             stop();
             return;
         }
@@ -175,7 +198,7 @@ namespace explore_ns
                                               frontiers_vec.end(),
                                               [this](const frontier_exploration_ns::FrontierStruct &f)
                                               { return IsGoalOnBlackList(f.centroid); });
-        if (iter_frontier == frontiers_vec.end())
+        if (iter_frontier == frontiers_vec.end()) // 代表没有了边界点
         {
             stop();
             return;
@@ -185,6 +208,7 @@ namespace explore_ns
 
         bool same_goal = prev_goal_ == target_position; // 判断是否相同
         prev_goal_ = target_position;
+
         if (!same_goal || prev_distance_ > iter_frontier->min_distance)
         {
             last_progress_ = ros::Time::now();
