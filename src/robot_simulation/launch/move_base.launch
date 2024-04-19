@@ -5,6 +5,11 @@
         <rosparam file="$(find robot_simulation)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
         <rosparam file="$(find robot_simulation)/config/global_costmap_params.yaml" command="load" />
         <rosparam file="$(find robot_simulation)/config/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(find robot_simulation)/config/dwa_planner_params.yaml" command="load" />
+
+
+        <param name="controller_frequency" value="15" />
+
         
         <!-- 使用A*算法或者dijkstra算法 -->
         <param name="base_global_planner" value="global_planner/GlobalPlanner" />

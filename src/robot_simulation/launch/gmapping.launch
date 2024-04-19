@@ -10,8 +10,9 @@
         <remap from="scan" to="$(arg scan_topic)"/>
         
         <param name="odom_frame" value="odom" />
+
         <!-- 地图更新时间 秒   -->
-        <param name="map_update_interval" value="0.2" />
+        <param name="map_update_interval" value="0.25" />
 
         <!-- Set maxUrange < actual maximum range of the Laser 传感器最大范围 -->
         <param name="maxRange" value="7.0" />

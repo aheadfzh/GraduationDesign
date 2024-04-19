@@ -24,7 +24,7 @@
   
     <!-- Spawn the objects into Gazebo -->
     <!-- <node name="bed" pkg="gazebo_ros" type="spawn_model" args="-file $(find robot_simulation)/models/bed.model -x 6.1 -y 5.6 -z 0 -Y 3.14159 -urdf -model bed" /> -->
-    <node name="sofa1" pkg="gazebo_ros" type="spawn_model" args="-file $(find robot_simulation)/models/sofa.model -x -2.0 -y -13.45 -z 0 -Y 1.57 -urdf -model sofa1" />
+    <!-- <node name="sofa1" pkg="gazebo_ros" type="spawn_model" args="-file $(find robot_simulation)/models/sofa.model -x -2.0 -y -13.45 -z 0 -Y 1.57 -urdf -model sofa1" /> -->
     <node name="sofa2" pkg="gazebo_ros" type="spawn_model" args="-file $(find robot_simulation)/models/sofa.model -x 2.0 -y -13.45 -z 0 -Y 1.57 -urdf -model sofa2" />
 
     <!-- <node name="bookshelft" pkg="gazebo_ros" type="spawn_model" args="-file $(find robot_simulation)/models/bookshelft.model -x 2.0 -y -0.55 -z 0 -Y -1.57 -urdf -model bookshelft" /> -->

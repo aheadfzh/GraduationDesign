@@ -32,6 +32,7 @@ namespace explore_ns
                          const move_base_msgs::MoveBaseResultConstPtr &result,
                          const geometry_msgs::Point &frontier_goal);
         bool IsGoalOnBlackList(const geometry_msgs::Point &goal);
+        std::vector<frontier_exploration_ns::FrontierStruct> OutGoalOnBlackList(const std::vector<frontier_exploration_ns::FrontierStruct> &frontier_vec);
 
         ros::NodeHandle private_nh_;
         ros::NodeHandle relative_nh_;
@@ -57,6 +58,8 @@ namespace explore_ns
         bool visualize_;
 
         dbscan_ns::DbscanClass dbscan;
+        double alpha;
+        double beta;
     };
 
 } // end of explore_ns

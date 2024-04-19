@@ -17,3 +17,7 @@
 + 仿真机器人的odom是由gazebo的运动控制插件发出，实体机器人需要从传感器接受处理
 + gmapping要有lase_link直接到base_link,
 + 实车时根据阿杰视频调整参数，降低消耗
+
+
+## 论文
++ 最终边界点结合dbscan算法策略是，选取函数：$$\alpha\bar c - \beta n/N_{max}$$ 其中$\bar c$是,平均代价， $n$是簇内元素数量
