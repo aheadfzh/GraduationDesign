@@ -36,7 +36,7 @@ namespace dbscan_ns
     public:
         DbscanClass() = delete;
         DbscanClass(ros::NodeHandle &param_nh);
-        frontier_exploration_ns::FrontierStruct getOptimalFrontier(vector<frontier_exploration_ns::FrontierStruct> fontier_vec, double alpha, double beta);
+        frontier_exploration_ns::FrontierStruct getOptimalFrontier(vector<frontier_exploration_ns::FrontierStruct> fontier_vec, double alpha, double beta,vector<set<int>>& result_clusters,set<int>& result_noise);
         double getEpsilon() const { return epsilon; }
         int getMinPts() const { return minPts; }
         void dispCluster(vector<set<int>> cluster);

@@ -90,12 +90,12 @@ namespace dbscan_ns
         return cluster;
     }
 
-    frontier_exploration_ns::FrontierStruct DbscanClass::getOptimalFrontier(vector<frontier_exploration_ns::FrontierStruct> frontier_vec, double alpha, double beta)
+    frontier_exploration_ns::FrontierStruct DbscanClass::getOptimalFrontier(vector<frontier_exploration_ns::FrontierStruct> frontier_vec, double alpha, double beta, vector<set<int>> &result_clusters, set<int> &result_noise)
     {
 
         // string temp_cout = "Points:";
         ROS_WARN("### DBSCAN start!!! ###");
-        
+
         vector<EvaluationStruct> eval_vec;
         vector<geometry_msgs::Point> centroid_vec;
 
@@ -113,13 +113,17 @@ namespace dbscan_ns
         }
         point_set_vec = getPointSet(centroid_vec);
         cluster_vec = getCluster(point_set_vec);
+        result_clusters = cluster_vec;
         // dispCluster(cluster_vec);  // 显示分类集合
 
-        int size_max = 1;                        // 需要先遍历所有簇后才能得到最大规模数 然后才能计算评价值
+        int size_max = 1; // 需要先遍历所有簇后才能得到最大规模数 然后才能计算评价值
+        int size_min =  std::numeric_limits<int>::max();
         for (const auto &set_iter : cluster_vec) // 遍历所有簇
         {
             if (set_iter.size() > size_max) // 寻找所有簇的最大规模
                 size_max = set_iter.size();
+            if (set_iter.size() < size_min) // 寻找所有簇的最小规模
+                size_min = set_iter.size();
 
             EvaluationStruct eval;
             double temp_min_cost = frontier_vec[*(set_iter.begin())].cost; // 暂时以首元素作为最小代价cost
@@ -145,9 +149,11 @@ namespace dbscan_ns
         }
 
         std::set_difference(all_set.begin(), all_set.end(), not_noise_set.begin(), not_noise_set.end(), std::inserter(noise_set, noise_set.begin())); // 取差集即可得到所有噪音点
+        result_noise = noise_set;
         // 得到集合 簇容器cluster和 noise_set后
         for (auto int_iter : noise_set)
         {
+            size_min = 1; // 则意味着存在噪音点 最小的规模是1
             EvaluationStruct eval;
             eval.number = 1;
             eval.cost_bar = frontier_vec[int_iter].cost;
@@ -160,7 +166,9 @@ namespace dbscan_ns
         double min_value = std::numeric_limits<double>::max();
         for (auto &eval : eval_vec)
         {
-            eval.value = alpha * eval.cost_bar - beta * eval.number / size_max;
+            // eval.value = alpha * eval.cost_bar - beta * (eval.number / size_max);
+            eval.value = alpha * eval.cost_bar + beta * (size_min / eval.number);
+            
             if (eval.value < min_value)
             {
                 min_value = eval.value;

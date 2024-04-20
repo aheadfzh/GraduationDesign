@@ -20,4 +20,4 @@
 
 
 ## 论文
-+ 最终边界点结合dbscan算法策略是，选取函数：$$\alpha\bar c - \beta n/N_{max}$$ 其中$\bar c$是,平均代价， $n$是簇内元素数量
++ 最终边界点结合dbscan算法策略是，选取函数：$$\alpha\bar c - \beta N_{min}/ n$$ 其中$\bar c$是,平均代价， $n$是簇内元素数量

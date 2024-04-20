@@ -4,6 +4,7 @@
 #include <vector>
 #include <mutex>
 #include <string>
+#include <map>
 
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
@@ -27,7 +28,11 @@ namespace explore_ns
 
     private:
         void MakePlan();
-        void VisualizeFrontiers(const std::vector<frontier_exploration_ns::FrontierStruct> &frontiers);
+        void VisualizeFrontiers(const std::vector<frontier_exploration_ns::FrontierStruct> &frontiers, bool viusal_flag);
+        void VisualizeFrontiers(const std::vector<frontier_exploration_ns::FrontierStruct> &frontiers, bool viusal_flag, vector<set<int>> &clusters, set<int> &noise);
+        std::map<std::string, std_msgs::ColorRGBA> generate4BaseColorMap();
+        std_msgs::ColorRGBA generate20DiffColors(int n);
+
         void ReachedGoal(const actionlib::SimpleClientGoalState &status,
                          const move_base_msgs::MoveBaseResultConstPtr &result,
                          const geometry_msgs::Point &frontier_goal);

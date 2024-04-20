@@ -86,13 +86,14 @@ namespace frontier_exploration_ns
             /* code */
         }
 
-        // for (auto &iter_frontier : frontiers_vec)
-        //     iter_frontier.cost = CalculateFrontierCost(iter_frontier);
         CalculateFrontierCost(frontiers_vec, pose);
 
         std::sort(frontiers_vec.begin(), frontiers_vec.end(), [](const FrontierStruct &f1, const FrontierStruct &f2)
                   { return f1.cost < f2.cost; }); // 对候选前沿点集合进行排序 Lambda表达式
 
+        ROS_WARN("----had found %lu frontiers---- ", frontiers_vec.size());
+        for (size_t i = 0; i < frontiers_vec.size(); ++i) // 显示边界的代价
+            ROS_WARN("----frontier %zd cost: %f ----", i + 1, frontiers_vec[i].cost);
         return frontiers_vec;
     }
 
@@ -180,7 +181,7 @@ namespace frontier_exploration_ns
      */
     double FrontierSearchClass::CalculateFrontierCost(const FrontierStruct &frontier)
     {
-        
+
         return (potential_scale_ * frontier.min_distance * costmap_->getResolution()) - (gain_scale_ * frontier.size * costmap_->getResolution());
     }
 
@@ -192,6 +193,7 @@ namespace frontier_exploration_ns
     {
         double max_min_distance = 1e-4;
         double max_size = 1e-4;
+        double min_size = std::numeric_limits<double>::max();
         double max_delta_angle = 1e-6;
         double yaw = tf::getYaw(pose.orientation); // 获取当前机器人的朝向角度  欧拉角
 
@@ -213,6 +215,8 @@ namespace frontier_exploration_ns
 
             if (iter_frontier.size > max_size)
                 max_size = iter_frontier.size;
+            if (iter_frontier.size < min_size)
+                min_size = iter_frontier.size;
 
             if (iter_frontier.delta_angle > max_delta_angle)
                 max_delta_angle = iter_frontier.delta_angle;
@@ -222,7 +226,8 @@ namespace frontier_exploration_ns
         {
             // iter_frontier.cost = potential_scale_ * (iter_frontier.min_distance / max_min_distance) - gain_scale_ * (iter_frontier.size / max_size);
 
-            iter_frontier.cost = potential_scale_ * (iter_frontier.min_distance / max_min_distance) + orientation_scale_ * (iter_frontier.delta_angle / max_delta_angle) - gain_scale_ * (iter_frontier.size / max_size);
+            // iter_frontier.cost = potential_scale_ * (iter_frontier.min_distance / max_min_distance) + orientation_scale_ * (iter_frontier.delta_angle / max_delta_angle) - gain_scale_ * (iter_frontier.size / max_size);
+            iter_frontier.cost = potential_scale_ * (iter_frontier.min_distance / max_min_distance) + orientation_scale_ * (iter_frontier.delta_angle / max_delta_angle) + gain_scale_ * (min_size / iter_frontier.size);
         }
     }
 } // end of namespace
