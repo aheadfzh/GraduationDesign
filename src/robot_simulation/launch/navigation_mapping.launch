@@ -9,8 +9,8 @@
 
     <include file="$(find robot_simulation)/launch/move_base.launch" />
 
+    
     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find robot_simulation)/rviz/simulation.rviz"
-        required="true" />
-
-
+    required="true" />
+    
 </launch>

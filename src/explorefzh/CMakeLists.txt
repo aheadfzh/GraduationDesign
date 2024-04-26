@@ -1,31 +1,13 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(explorefzh)
 
-## Compile as C++11, supported in ROS Kinetic and newer
+# # Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
+# # Find catkin macros and libraries
+# # if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
+# # is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  actionlib
-  actionlib_msgs
-  costmap_2d
-  geometry_msgs
-  map_msgs
-  move_base_msgs
-  nav_msgs
-  roscpp
-  std_msgs
-  tf
-  visualization_msgs
-)
-###################################
-## catkin specific configuration ##
-###################################
-
-catkin_package(
- CATKIN_DEPENDS 
     actionlib
     actionlib_msgs
     costmap_2d
@@ -34,68 +16,106 @@ catkin_package(
     move_base_msgs
     nav_msgs
     roscpp
-    
     std_msgs
-    tf 
+    tf
     visualization_msgs
-
+    message_generation
 )
 
-###########
-## Build ##
-###########
+# ##################################
+# # catkin specific configuration ##
+# ##################################
+add_message_files(
+    FILES
+    explore_data.msg
+)
 
+generate_messages(
+    DEPENDENCIES
+
+    std_msgs
+)
+
+catkin_package(
+    CATKIN_DEPENDS
+    actionlib
+    actionlib_msgs
+    costmap_2d
+    geometry_msgs
+    map_msgs
+    move_base_msgs
+    nav_msgs
+    roscpp
+
+    std_msgs
+    tf
+    visualization_msgs
+
+    message_runtime
+)
+
+# ##########
+# # Build ##
+# ##########
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
+# # Specify additional locations of header files
+# # Your package locations should be listed before other locations
 include_directories(
     include
     ${catkin_INCLUDE_DIRS}
 )
 
-aux_source_directory(./src  SRC_LIST)
-
-add_executable(${PROJECT_NAME}_node  ${SRC_LIST})
-
-
-
+# aux_source_directory(./src  SRC_LIST)
+add_executable(${PROJECT_NAME}_node
+    ./src/active_explore.cpp
+    ./src/costmap_client.cpp
+    ./src/dbscan.cpp
+    ./src/search_frontier.cpp
+)
 
 # add_executable(${PROJECT_NAME}_node src/active_explore.cpp src/costmap_client.cpp  src/search_frontier.cpp)
-
-
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-## Specify libraries to link a library or executable target against
+# # Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
-  ${catkin_LIBRARIES}
+    ${catkin_LIBRARIES}
 )
 
-#############
-## Install ##
-#############
-install(TARGETS ${PROJECT_NAME}_node
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+add_executable(explore_data_node
+    ./src/explore_data.cpp
+    ./src/costmap_client.cpp)
+
+add_dependencies(explore_data_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(explore_data_node
+    ${catkin_LIBRARIES}
 )
+
+# ############
+# # Install ##
+# ############
+install(TARGETS ${PROJECT_NAME}_node
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+)
+
 # install roslaunch files
 install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
 )
 
-#############
-## Testing ##
-#############
+# ############
+# # Testing ##
+# ############
 if(CATKIN_ENABLE_TESTING)
-  find_package(roslaunch REQUIRED)
+    find_package(roslaunch REQUIRED)
 
-  # test all launch files
-  roslaunch_add_file_check(launch)
+    # test all launch files
+    roslaunch_add_file_check(launch)
 endif()
-
 
 # 这部分代码块主要涉及到ROS软件包的安装和测试相关的配置。让我们逐个解释其作用：
 

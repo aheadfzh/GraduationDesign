@@ -2,17 +2,17 @@
 <launch>
 
     <arg name="scan_topic" default="scan" />
-    <arg name="base_frame" default="base_footprint"/>
+    <arg name="base_frame" default="base_footprint" />
 
     <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen"
         clear_params="true">
-        <param name="base_frame" value="$(arg base_frame)"/>
-        <remap from="scan" to="$(arg scan_topic)"/>
-        
+        <param name="base_frame" value="$(arg base_frame)" />
+        <remap from="scan" to="$(arg scan_topic)" />
+
         <param name="odom_frame" value="odom" />
 
         <!-- 地图更新时间 秒   -->
-        <param name="map_update_interval" value="0.25" />
+        <param name="map_update_interval" value="0.5" />
 
         <!-- Set maxUrange < actual maximum range of the Laser 传感器最大范围 -->
         <param name="maxRange" value="7.0" />
@@ -34,6 +34,7 @@
         <param name="ymax" value="10.0" />
 
         <!-- 每次扫描跳过的光束数 -->
+        <param name="lskip" value="0.00" />
         <param name="lstep" value="0.05" />
 
         <!-- 滤波器中粒子数目 -->

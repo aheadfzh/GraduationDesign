@@ -344,7 +344,7 @@ namespace explore_ns
     // 生成四种基本不同颜色map
     std::map<std::string, std_msgs::ColorRGBA> ExploreClass::generate4BaseColorMap()
     {
-        std::map<std::string, std_msgs::ColorRGBA> colors_map={};
+        std::map<std::string, std_msgs::ColorRGBA> colors_map = {};
         std_msgs::ColorRGBA blue;
         blue.r = 0;
         blue.g = 0;
@@ -471,8 +471,47 @@ namespace explore_ns
     void ExploreClass::stop()
     {
 
-        ROS_WARN("####  Exploration Stopped ### Cancel All Goals ###");
+        ROS_WARN("####  Exploration Stopped ### Cancel All Goals ### ");
+
         move_base_client_.cancelAllGoals();
+
+        {
+            // 设置延时时间，单位为秒
+            double delay_time = 2.0;
+
+            // 创建一个定时器，并设置延时时间
+            ros::Duration duration(delay_time);
+            ros::Timer timer = relative_nh_.createTimer(duration, [](const ros::TimerEvent &)
+                                                        { ROS_INFO("calculate result"); });
+
+            unsigned int sizeX = costmap_client_.getCostmap()->getSizeInCellsX(), sizeY = costmap_client_.getCostmap()->getSizeInCellsY();
+
+            ROS_WARN("\n#### Map(%d,%d) #### \n", sizeX, sizeY);
+            unsigned mx, my;
+            double wx, wy;
+            costmap_client_.getCostmap()->indexToCells(0, mx, my);
+            costmap_client_.getCostmap()->mapToWorld(mx, my, wx, wy);
+            ROS_WARN("index = 0 match: m(%d,%d), w(%f,%f)", mx, my, wx, wy);
+
+            unsigned int maxSize = sizeX * sizeY - 1;
+
+            costmap_client_.getCostmap()->indexToCells(maxSize, mx, my);
+            costmap_client_.getCostmap()->mapToWorld(mx, my, wx, wy);
+            ROS_WARN("index = MAX match: m(%d,%d), w(%f,%f)", mx, my, wx, wy);
+            auto map = costmap_client_.getCostmap()->getCharMap();
+
+            long long area = 0;
+            for (size_t i = 0; i <= maxSize; i++)
+            {
+                if (map[i] == costmap_2d::FREE_SPACE || map[i] == costmap_2d::LETHAL_OBSTACLE)
+                {
+                    area++;
+                }
+            }
+
+            ROS_WARN(" ### total %lld cells have been found ", area);
+        }
+
         exploring_timer_.stop();
     }
 }

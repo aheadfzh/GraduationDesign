@@ -27,32 +27,32 @@ namespace frontier_exploration_ns
 
         if (idx > size_x_ * size_y_ - 1)
         {
-            ROS_WARN("Evaluating nhood for offmap point");
+            ROS_WARN("Evaluating nhood for off map point");
             return out;
         }
 
         if (idx % size_x_ > 0)
         {
-            out.push_back(idx - 1);
+            out.push_back(idx - 1);// 左
         }
         if (idx % size_x_ < size_x_ - 1)
         {
-            out.push_back(idx + 1);
+            out.push_back(idx + 1); // 右
         }
         if (idx >= size_x_)
         {
-            out.push_back(idx - size_x_);
+            out.push_back(idx - size_x_); // 上
         }
         if (idx < size_x_ * (size_y_ - 1))
         {
-            out.push_back(idx + size_x_);
+            out.push_back(idx + size_x_);  // 下
         }
         return out;
     }
 
     /**
      * @brief Determine 8-connected neighbourhood of an input cell, checking for map
-     * edges
+     * edges 顺序 左 右 上 下 左上 左下 右上 右下
      * @param idx input cell index
      * @param costmap Reference to map data
      * @return neighbour cell indexes
@@ -73,19 +73,19 @@ namespace frontier_exploration_ns
 
         if (idx % size_x_ > 0 && idx >= size_x_)
         {
-            out.push_back(idx - 1 - size_x_);
+            out.push_back(idx - 1 - size_x_); // 左上
         }
         if (idx % size_x_ > 0 && idx < size_x_ * (size_y_ - 1))
         {
-            out.push_back(idx - 1 + size_x_);
+            out.push_back(idx - 1 + size_x_); // 左下
         }
         if (idx % size_x_ < size_x_ - 1 && idx >= size_x_)
         {
-            out.push_back(idx + 1 - size_x_);
+            out.push_back(idx + 1 - size_x_); // 右上
         }
         if (idx % size_x_ < size_x_ - 1 && idx < size_x_ * (size_y_ - 1))
         {
-            out.push_back(idx + 1 + size_x_);
+            out.push_back(idx + 1 + size_x_); // 右下
         }
 
         return out;

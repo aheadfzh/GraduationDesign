@@ -14,7 +14,7 @@
 #include <costmap_2d/cost_values.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PoseStamped.h>
-
+#include <set>
 #include <cmath>
 #include <tf/transform_datatypes.h>
 
@@ -29,12 +29,14 @@ namespace frontier_exploration_ns
         double min_distance; // 所有有效栅格中距离robot最近的距离
         double cost;         // 代价
         double delta_angle;
+        bool danger_flag;
         // point的默认构造函数就是0 0 0
         geometry_msgs::Point initial;
         geometry_msgs::Point centroid;
         geometry_msgs::Point middle;
+        geometry_msgs::Point centroid_replace;
         std::vector<geometry_msgs::Point> points_vec;
-        FrontierStruct() : size(1), min_distance(std::numeric_limits<double>::infinity()), delta_angle(0){};
+        FrontierStruct() : size(1), min_distance(std::numeric_limits<double>::infinity()), delta_angle(0), danger_flag(false){};
     };
     /**
      * @brief 寻找前沿点的类

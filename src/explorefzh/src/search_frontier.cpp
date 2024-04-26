@@ -106,7 +106,7 @@ namespace frontier_exploration_ns
         FrontierStruct new_frontier;
         unsigned int mx, my;
         costmap_->indexToCells(initial_cell_index, mx, my);                           // 一维索引转换为栅格地图坐标
-        costmap_->mapToWorld(mx, my, new_frontier.initial.x, new_frontier.initial.y); // 栅格地图坐标转换为世界坐标 作为初始点
+        costmap_->mapToWorld(mx, my, new_frontier.initial.x, new_frontier.initial.y); // 栅格地图坐标转换为世界坐标 作为起始点
 
         std::queue<unsigned int> bfs_queue;
         bfs_queue.push(initial_cell_index);
@@ -114,6 +114,8 @@ namespace frontier_exploration_ns
         double robot_x, robot_y;
         costmap_->indexToCells(robot_index, rx, ry);    // 一维索引转换为栅格地图坐标
         costmap_->mapToWorld(rx, ry, robot_x, robot_y); // 栅格地图转换为世界坐标
+        std::set<unsigned int> local_cell_index_set;
+
         // 广度优先搜索
         while (!bfs_queue.empty())
         {
@@ -150,18 +152,50 @@ namespace frontier_exploration_ns
                     }
                     bfs_queue.push(iter_nbr_index);
                 }
+                if (map_[iter_nbr_index] == LETHAL_OBSTACLE)
+                {
+                    local_cell_index_set.insert(iter_nbr_index);
+                }
             }
         }
-
         new_frontier.centroid.x /= new_frontier.size;
         new_frontier.centroid.y /= new_frontier.size;
+
+        // geometry_msgs::Point local_cells_centroid;
+        // if (double(local_cell_index_set.size()) >= double(new_frontier.size) / 3) // 判断障碍物的的规模
+        // {
+        //     for (auto iter_index : local_cell_index_set)
+        //     {
+        //         unsigned int cx, cy;
+        //         double wx, wy;
+        //         costmap_->indexToCells(iter_index, cx, cy);
+        //         costmap_->mapToWorld(cx, cy, wx, wy);
+        //         local_cells_centroid.x += wx;
+        //         local_cells_centroid.y += wy;
+        //     }
+
+        //     local_cells_centroid.x /= local_cell_index_set.size(); // 障碍物质心
+        //     local_cells_centroid.y /= local_cell_index_set.size();
+
+        //     if (sqrt(pow((local_cells_centroid.x - new_frontier.centroid.x), 2.0) + pow((local_cells_centroid.y - new_frontier.centroid.y), 2.0)) < 0.7) // 两者质心距离
+        //     {
+        //         double dx = new_frontier.centroid.x - local_cells_centroid.x;
+        //         double dy = new_frontier.centroid.y - local_cells_centroid.y;
+        //         double length = sqrt(dx * dx + dy * dy);
+        //         double distance = 1.0;
+        //         new_frontier.centroid_replace.x = new_frontier.centroid.x + distance * (dx / length);
+        //         new_frontier.centroid_replace.y = new_frontier.centroid.y + distance * (dy / length);
+        //         new_frontier.danger_flag = true;
+        //     }
+        // }
+
         return new_frontier;
     }
 
     /**
      * @brief 对于未知栅格判断是否是新的 有效边界栅格
      */
-    bool FrontierSearchClass::IsNewFrontierCell(unsigned index, const std::vector<bool> &frontier_flag)
+    bool FrontierSearchClass::IsNewFrontierCell(unsigned int index, const std::vector<bool> &frontier_flag)
     {
 
         if (map_[index] != NO_INFORMATION || frontier_flag[index])
