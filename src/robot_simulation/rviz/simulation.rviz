@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /MarkerArray1
         - /Path1
       Splitter Ratio: 0.43216079473495483
     Tree Height: 600
@@ -241,12 +242,12 @@ Visualization Manager:
       Class: rviz/Map
       Color Scheme: costmap
       Draw Behind: false
-      Enabled: true
+      Enabled: false
       Name: GlobalCostMap
       Topic: /move_base/global_costmap/costmap
       Unreliable: false
       Use Timestamp: false
-      Value: true
+      Value: false
     - Alpha: 0.699999988079071
       Class: rviz/Map
       Color Scheme: costmap
@@ -313,7 +314,7 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /explore_data_node/robot_path
+      Topic: /robot_path
       Unreliable: false
       Value: true
   Enabled: true
@@ -344,16 +345,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 26.215478897094727
+      Distance: 36.83086013793945
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.2082500159740448
-        Y: 2.21977162361145
-        Z: -0.13876332342624664
+        X: 7.388037204742432
+        Y: 2.892551898956299
+        Z: -0.13770540058612823
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -362,7 +363,7 @@ Visualization Manager:
       Pitch: 1.5647963285446167
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.60857629776001
+      Yaw: 4.658575534820557
     Saved: ~
 Window Geometry:
   Displays:
@@ -380,5 +381,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1267
-  X: 67
+  X: 276
   Y: 27

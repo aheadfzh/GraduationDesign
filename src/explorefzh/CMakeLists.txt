@@ -84,12 +84,12 @@ target_link_libraries(${PROJECT_NAME}_node
     ${catkin_LIBRARIES}
 )
 
-add_executable(explore_data_node
-    ./src/explore_data.cpp
-    ./src/costmap_client.cpp)
+add_executable(experiment_node
+    ./src/experiment.cpp
+    )
 
-add_dependencies(explore_data_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(explore_data_node
+add_dependencies(experiment_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(experiment_node
     ${catkin_LIBRARIES}
 )
 
