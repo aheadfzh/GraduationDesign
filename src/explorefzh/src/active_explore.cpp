@@ -26,7 +26,7 @@ namespace explore_ns
                                    move_base_client_("move_base"),
                                    prev_distance_(0.0),
                                    last_markers_count_(0),
-                                   dbscan(private_nh_) // dbscan算法
+                                   dbscan_(private_nh_) // DBSCAN算法
     {
         double timeout;
         double min_frontier_size;
@@ -38,8 +38,8 @@ namespace explore_ns
         private_nh_.param("orientation_scale", orientation_scale_, 0.0);
         private_nh_.param("gain_scale", gain_scale_, 1.0);
         private_nh_.param("min_frontier_size", min_frontier_size, 0.5);
-        private_nh_.param("alpha", alpha, 0.5);
-        private_nh_.param("beta", beta, 0.5);
+        private_nh_.param("alpha", alpha_, 0.5);
+        private_nh_.param("beta", beta_, 0.5);
 
         search_ = frontier_exploration_ns::FrontierSearchClass(costmap_client_.getCostmap(),
                                                                potential_scale_,
@@ -49,9 +49,9 @@ namespace explore_ns
         if (visualize_)
             marker_array_pub_ = private_nh_.advertise<visualization_msgs::MarkerArray>("frontiers", 10);
 
-        ROS_WARN("----Waiting to connect to move_base server----");
+        ROS_DEBUG("Waiting to connect to move_base server");
         move_base_client_.waitForServer();
-        ROS_WARN("----Connected to move_base server----");
+        ROS_DEBUG("Connected to move_base server successfully");
 
         exploring_timer_ = relative_nh_.createTimer(ros::Duration(1.0 / planner_frequency_),
                                                     [this](const ros::TimerEvent &)
@@ -73,7 +73,7 @@ namespace explore_ns
 
         if (frontiers_vec.empty())
         {
-            ROS_WARN("!!!All frontiers have been explored !!!!");
+            ROS_DEBUG("All frontiers have been explored");
             VisualizeFrontiers(frontiers_vec, visualize_); // 含有清除功能
             stop();
             return;
@@ -90,7 +90,7 @@ namespace explore_ns
             vector<set<int>> clusters;
             set<int> noises;
             std::vector<frontier_exploration_ns::FrontierStruct> frontier_vec_clear = OutGoalOnBlackList(frontiers_vec);
-            optimal_frontier = dbscan.getOptimalFrontier(frontier_vec_clear, alpha, beta, clusters, noises);
+            optimal_frontier = dbscan_.getOptimalFrontier(frontier_vec_clear, alpha_, beta_, clusters, noises);
             VisualizeFrontiers(frontiers_vec, visualize_, clusters, noises);
         }
         else
@@ -98,7 +98,7 @@ namespace explore_ns
 
         if (iter_frontier == frontiers_vec.end()) // 代表没有了边界点或者里面全是黑名单的边界点
         {
-            ROS_WARN("!!!Only frontiers on black list have not been explored !!!!");
+            ROS_WARN("Only frontiers on black list have not been explored");
             stop();
             return;
         }
@@ -115,13 +115,13 @@ namespace explore_ns
         if (ros::Time::now() - last_progress_ > progress_timeout_)
         {
             frontier_blacklist_.push_back(target_position);
-            ROS_WARN("### Adding current goal (%f, %f) to black list ###", target_position.x, target_position.y);
+            ROS_WARN("Adding current goal (%f, %f) to black list", target_position.x, target_position.y);
             MakePlan(); // 回调执行
             return;
         }
         if (same_goal)
         {
-            ROS_WARN("### same_goal ###");
+            ROS_DEBUG("same_goal");
             return;
         }
 
@@ -148,7 +148,7 @@ namespace explore_ns
             return;
         auto color_map = generate4BaseColorMap();
 
-        ROS_WARN("----visualising %lu frontiers----", frontiers_vec.size());
+        ROS_DEBUG("visualising %lu frontiers", frontiers_vec.size());
         visualization_msgs::MarkerArray marker_array;
         std::vector<visualization_msgs::Marker> &markers_vec = marker_array.markers;
         visualization_msgs::Marker marker;
@@ -159,10 +159,7 @@ namespace explore_ns
         marker.scale.x = 1.0;
         marker.scale.y = 1.0;
         marker.scale.z = 1.0;
-        marker.color.r = 0;
-        marker.color.g = 0;
-        marker.color.b = 1;
-        marker.color.a = 1;
+        marker.color = color_map["blue"];
         marker.lifetime = ros::Duration(0); // 设置可视化标记的生命周期为0秒，即使不持续显示，也不会自动消失
         marker.frame_locked = true;
 
@@ -204,21 +201,6 @@ namespace explore_ns
                 marker.color = color_map["red"];
             markers_vec.push_back(marker);
             ++id;
-
-            // marker.type = visualization_msgs::Marker::SPHERE;
-            // marker.id = int(id);
-            // marker.pose.position = frontier.initial;
-            // marker.scale.x = 0.3;
-            // marker.scale.y = 0.3;
-            // marker.scale.z = 0.3;
-            // // scale 保持不变
-            // marker.points = {};
-            // if (!temp_color_flag)
-            //     marker.color = color_map["green"];
-            // else
-            //     marker.color = color_map["red"];
-            // markers_vec.push_back(marker);
-            // ++id;
         }
         size_t current_markers_count = markers_vec.size();
         // 删除之前不再使用的标记
@@ -237,7 +219,7 @@ namespace explore_ns
         if (!viusal_flag)
             return;
         auto color_map = generate4BaseColorMap();
-        ROS_WARN("----visualising %lu frontiers----", frontiers_vec.size());
+        ROS_DEBUG("----visualising %lu frontiers----", frontiers_vec.size());
         visualization_msgs::MarkerArray marker_array;
         std::vector<visualization_msgs::Marker> &markers_vec = marker_array.markers;
         visualization_msgs::Marker marker;
@@ -400,9 +382,6 @@ namespace explore_ns
 
     /**
      * @brief 判断goal是否在黑名单中
-     * @param  goal
-     * @return true
-     * @return false
      */
     bool ExploreClass::IsGoalOnBlackList(const geometry_msgs::Point &goal)
     {
@@ -471,74 +450,25 @@ namespace explore_ns
     void ExploreClass::stop()
     {
 
-        ROS_WARN("####  Exploration Stopped ### Cancel All Goals ### ");
+        ROS_WARN("### Exploration Stopped ### Cancel All Goals ### ");
 
         move_base_client_.cancelAllGoals();
-
-        {
-            // 设置延时时间，单位为秒
-            double delay_time = 2.0;
-
-            // 创建一个定时器，并设置延时时间
-            ros::Duration duration(delay_time);
-            ros::Timer timer = relative_nh_.createTimer(duration, [](const ros::TimerEvent &)
-                                                        { ROS_INFO("calculate result"); });
-
-            unsigned int sizeX = costmap_client_.getCostmap()->getSizeInCellsX(), sizeY = costmap_client_.getCostmap()->getSizeInCellsY();
-
-            ROS_WARN("\n#### Map(%d,%d) #### \n", sizeX, sizeY);
-            unsigned mx, my;
-            double wx, wy;
-            costmap_client_.getCostmap()->indexToCells(0, mx, my);
-            costmap_client_.getCostmap()->mapToWorld(mx, my, wx, wy);
-            ROS_WARN("index = 0 match: m(%d,%d), w(%f,%f)", mx, my, wx, wy);
-
-            unsigned int maxSize = sizeX * sizeY - 1;
-
-            costmap_client_.getCostmap()->indexToCells(maxSize, mx, my);
-            costmap_client_.getCostmap()->mapToWorld(mx, my, wx, wy);
-            ROS_WARN("index = MAX match: m(%d,%d), w(%f,%f)", mx, my, wx, wy);
-            auto map = costmap_client_.getCostmap()->getCharMap();
-
-            long long area = 0;
-            for (size_t i = 0; i <= maxSize; i++)
-            {
-                if (map[i] == costmap_2d::FREE_SPACE || map[i] == costmap_2d::LETHAL_OBSTACLE)
-                {
-                    area++;
-                }
-            }
-
-            ROS_WARN(" ### total %lld cells have been found ", area);
-        }
-
         exploring_timer_.stop();
     }
 }
 
 int main(int argc, char *argv[])
 {
-    /*
-    1. 计算代价函数要改为归一化处理
-    2. 添加方位角权重计算
-    3. 与机器人的距离应该为最短距离
-    4. 尝试使用最小二乘法拟合曲线
-    */
-    /* code */
-    ros::init(argc, argv, "explorefzh");
 
-    ROS_WARN("---begin---begin---begin---");
+    /* code */
+    ros::init(argc, argv, "explorefzh_node");
 
     if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug))
     {
         ros::console::notifyLoggerLevelsChanged();
     }
-
     explore_ns::ExploreClass explore_fzh;
 
     ros::spin();
-
-    ROS_WARN("----over----over----over----over----");
-
     return 0;
 }

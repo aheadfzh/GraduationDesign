@@ -1,7 +1,8 @@
 <launch>
 
     <!-- 加载场景 -->
-    <include file="$(find robot_simulation)/launch/simulation_stage.launch" />
+         <include file="$(find myrobot_description)/launch/display_gazebo.launch" />
+    <!-- <include file="$(find robot_simulation)/launch/simulation_stage.launch" /> -->
 
     <include file="$(find robot_simulation)/launch/gmapping.launch" />
 

@@ -62,9 +62,9 @@ namespace explore_ns
         ros::Duration progress_timeout_; // 程序超时时间
         bool visualize_;
 
-        dbscan_ns::DbscanClass dbscan;
-        double alpha;
-        double beta;
+        dbscan_ns::DbscanClass dbscan_;
+        double alpha_;
+        double beta_;
     };
 
 } // end of explore_ns

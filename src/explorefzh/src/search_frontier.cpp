@@ -220,14 +220,14 @@ namespace frontier_exploration_ns
     }
 
     /**
-     * @brief 计算代价 归一化形式 考虑转角航向代价
+     * @brief 计算评价函数值 使用了最大-最小归一化法  边界大小 距离 转角
      * @param  frontiers_vec    My Param doc
      */
     void FrontierSearchClass::CalculateFrontierCost(std::vector<FrontierStruct> &frontiers_vec, geometry_msgs::Pose pose)
     {
         double max_min_distance = 1e-4;
         double max_size = 1e-4;
-        double min_size = std::numeric_limits<double>::max();
+        double min_size = std::numeric_limits<double>::max(); // 初始化为最大值
         double max_delta_angle = 1e-6;
         double yaw = tf::getYaw(pose.orientation); // 获取当前机器人的朝向角度  欧拉角
 
@@ -236,13 +236,14 @@ namespace frontier_exploration_ns
 
             double angle_to_goal = atan2(iter_frontier.centroid.y - pose.position.y, iter_frontier.centroid.x - pose.position.x);
 
-            double delta_angle = angle_to_goal - yaw;
+            double delta_angle = angle_to_goal - yaw; // 转角
+            // 保证处于 -pi到pi
             while (delta_angle > M_PI)
                 delta_angle -= 2 * M_PI;
             while (delta_angle < -M_PI)
                 delta_angle += 2 * M_PI;
 
-            iter_frontier.delta_angle = fabs(delta_angle) * R_TO_A; // 取绝对值
+            iter_frontier.delta_angle = fabs(delta_angle) * kRadianToAngleRatio; // 转为角度值 取绝对值
 
             if (iter_frontier.min_distance > max_min_distance)
                 max_min_distance = iter_frontier.min_distance;
@@ -259,7 +260,6 @@ namespace frontier_exploration_ns
         for (auto &iter_frontier : frontiers_vec)
         {
             // iter_frontier.cost = potential_scale_ * (iter_frontier.min_distance / max_min_distance) - gain_scale_ * (iter_frontier.size / max_size);
-
             // iter_frontier.cost = potential_scale_ * (iter_frontier.min_distance / max_min_distance) + orientation_scale_ * (iter_frontier.delta_angle / max_delta_angle) - gain_scale_ * (iter_frontier.size / max_size);
             iter_frontier.cost = potential_scale_ * (iter_frontier.min_distance / max_min_distance) + orientation_scale_ * (iter_frontier.delta_angle / max_delta_angle) + gain_scale_ * (min_size / iter_frontier.size);
         }

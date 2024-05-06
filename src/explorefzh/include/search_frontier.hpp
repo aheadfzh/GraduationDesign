@@ -18,7 +18,9 @@
 #include <cmath>
 #include <tf/transform_datatypes.h>
 
-constexpr double R_TO_A = 180 / M_PI; // 弧度转角度比例 在编译阶段就完成了运算
+
+constexpr double kRadianToAngleRatio = 180 / M_PI; // 弧度转角度比例 在编译阶段就完成了运算
+
 
 namespace frontier_exploration_ns
 {

@@ -1,8 +1,7 @@
 /**
  * @file dbscan.cpp
  * @brief dbscan算法 注意 set 容器中的元素是唯一的
- *          核心点，边界点和噪声点。邻域半径R内样本点的数量大于等于minpoints的点叫做核心点。
- *          不属于核心点但在某个核心点的邻域内的点叫做边界点。既不是核心点也不是边界点的是噪声点。
+ *          核心点，边界点和噪声点
  * @author ZhiHang_FU (fu_zhihang@126.com)
  * @version 1.0
  * @date 2024-04-18
@@ -15,13 +14,13 @@ namespace dbscan_ns
 
     DbscanClass::DbscanClass(ros::NodeHandle &param_nh)
     {
-        double minPts_;
-        param_nh.param("dbscan_minPts", minPts_, 3.0);
-        param_nh.param("dbscan_epsilon", epsilon, 2.99);
-        minPts = int(minPts_);
+        double minPts;
+        param_nh.param("dbscan_minPts", minPts, 3.0);
+        param_nh.param("dbscan_epsilon", epsilon_, 2.99);
+        minPts_ = int(minPts);
     }
 
-    void DbscanClass::dispCluster(vector<set<int>> cluster)
+    void DbscanClass::DispCluster(vector<set<int>> cluster)
     {
         string temp_cout = "Cluster:";
         for (auto s_iter : cluster)
@@ -49,7 +48,7 @@ namespace dbscan_ns
         {
             for (size_t j = 0; j < points_vec.size(); j++)
             {
-                if (distance(points_vec[i], points_vec[j]) <= epsilon)
+                if (CalculateDistance(points_vec[i], points_vec[j]) <= epsilon_)
                     PointSet[i].insert(j);
             }
         }
@@ -59,8 +58,6 @@ namespace dbscan_ns
 
     /**
      * @brief 只能由核心点拓展，非核心点只能被囊括在内，而不由它开始拓展 核心算法
-     * @param  points_set_vec   My Param doc
-     * @param  minPts           My Param doc
      * @return vector<set<int>>  是Point容器的元素下标 组成的集合
      */
     vector<set<int>> DbscanClass::getCluster(vector<set<int>> points_set_vec)
@@ -70,13 +67,13 @@ namespace dbscan_ns
 
         for (size_t i = 0; i < points_set_vec.size(); i++) // 遍历每个集合
         {
-            if (!visted_flag[i] && points_set_vec[i].size() >= minPts) // 如果这个集合没有遍历过 集合的元素大于minPts （核心点集合）
+            if (!visted_flag[i] && points_set_vec[i].size() >= minPts_) // 如果这个集合没有遍历过 集合的元素大于minPts_ （核心点集合）
             {
                 // 遍历第i个集合中的每个元素
                 for (set<int>::const_iterator j = points_set_vec[i].begin(); j != points_set_vec[i].end(); j++)
                 {
                     visted_flag[*j] = true;
-                    if (points_set_vec[*j].size() >= minPts) // 以第*j元素为圆心的邻域集合内有大于minPts个点 （核心点集合）
+                    if (points_set_vec[*j].size() >= minPts_) // 以第*j元素为圆心的邻域集合内有大于minPts_个点 （核心点集合）
                         for (auto k = points_set_vec[*j].begin(); k != points_set_vec[*j].end(); k++)
                         {
                             points_set_vec[i].insert(*k); // 间接连接的点也加入该集合
@@ -180,13 +177,3 @@ namespace dbscan_ns
     }
 
 }
-
-/*
- temp_cout += "(";
-            temp_cout += to_string(frontier_vec[i].centroid.x);
-            temp_cout += ",";
-            temp_cout += to_string(frontier_vec[i].centroid.y);
-            temp_cout += ")  ";
-        }
-        ROS_WARN_STREAM(temp_cout);
-*/

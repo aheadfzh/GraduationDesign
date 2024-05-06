@@ -24,9 +24,9 @@ namespace dbscan_ns
     class DbscanClass
     {
     private:
-        int minPts;
-        double epsilon;
-        double distance(const geometry_msgs::Point &a, const geometry_msgs::Point &b)
+        int minPts_;
+        double epsilon_;
+        double CalculateDistance(const geometry_msgs::Point &a, const geometry_msgs::Point &b)
         {
             return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
         }
@@ -36,10 +36,10 @@ namespace dbscan_ns
     public:
         DbscanClass() = delete;
         DbscanClass(ros::NodeHandle &param_nh);
-        frontier_exploration_ns::FrontierStruct getOptimalFrontier(vector<frontier_exploration_ns::FrontierStruct> fontier_vec, double alpha, double beta,vector<set<int>>& result_clusters,set<int>& result_noise);
-        double getEpsilon() const { return epsilon; }
-        int getMinPts() const { return minPts; }
-        void dispCluster(vector<set<int>> cluster);
+        frontier_exploration_ns::FrontierStruct getOptimalFrontier(vector<frontier_exploration_ns::FrontierStruct> fontier_vec, double alpha, double beta, vector<set<int>> &result_clusters, set<int> &result_noise);
+        double get_epsilon() const { return epsilon_; }
+        int get_minPts() const { return minPts_; }
+        void DispCluster(vector<set<int>> cluster);
         ~DbscanClass(){};
     };
 }
